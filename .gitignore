@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# Directorios del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración de IDE
+.vscode/
+*.swp
+
+# Build outputs
+dist/
+build/
+
+# Archivos de dependencia
+package-lock.json
+yarn.lock
+
+# Configuración específica de Apache o XAMPP
+httpd.conf
