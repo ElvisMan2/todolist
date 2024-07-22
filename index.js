@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+const db = require('./db'); // Importar la conexión a la base de datos
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -10,41 +11,64 @@ app.get('/', (req, res) => {
   res.send('¡Bienvenido a mi API!');
 });
 
-// Ruta para obtener todos los elementos (por ejemplo, usuarios)
+// Ruta para obtener todos los usuarios
 app.get('/users', (req, res) => {
-  const users = [
-    { id: 1, name: 'Juan' },
-    { id: 2, name: 'María' }
-  ];
-  res.json(users);
+  db.query('SELECT * FROM users', (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(results);
+  });
 });
 
-// Ruta para obtener un solo elemento por ID
+// Ruta para obtener un usuario por ID
 app.get('/users/:id', (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  const user = { id: userId, name: 'Usuario Ejemplo' };
-  res.json(user);
+  const userId = req.params.id;
+  db.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(results[0]);
+  });
 });
 
-// Ruta para crear un nuevo elemento
+// Ruta para crear un nuevo usuario
 app.post('/users', (req, res) => {
   const newUser = req.body;
-  newUser.id = Math.floor(Math.random() * 1000); // Generar un ID aleatorio para el ejemplo
-  res.status(201).json(newUser);
+  db.query('INSERT INTO users SET ?', newUser, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json({ id: results.insertId, ...newUser });
+  });
 });
 
-// Ruta para actualizar un elemento existente
+// Ruta para actualizar un usuario existente
 app.put('/users/:id', (req, res) => {
-  const userId = parseInt(req.params.id, 10);
+  const userId = req.params.id;
   const updatedUser = req.body;
-  updatedUser.id = userId;
-  res.json(updatedUser);
+  db.query('UPDATE users SET ? WHERE id = ?', [updatedUser, userId], (err) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id: userId, ...updatedUser });
+  });
 });
 
-// Ruta para eliminar un elemento
+// Ruta para eliminar un usuario
 app.delete('/users/:id', (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  res.status(204).send();
+  const userId = req.params.id;
+  db.query('DELETE FROM users WHERE id = ?', [userId], (err) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(204).send();
+  });
 });
 
 // Iniciar el servidor
